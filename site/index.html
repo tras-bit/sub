@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUBSISTENCE SYSTEM — BACKROOMS OPERATING SYSTEM v2.0 CONSOLE</title>
+<style>
+  :root{
+    --bg:#04120a; --bg-deep:#020a06; --br:#0f3d24; --br-bright:#1c7a45;
+    --g:#5cff92; --g-bright:#b6ffd0; --g-dim:#2f8c53; --g-dark:#175c35;
+    --y:#ffe680; --r:#ff6b5e; --sel:#0b2a18;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:#010603;overflow:hidden}
+  body{
+    font-family:"Courier New",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:15px;color:var(--g);text-shadow:0 0 7px rgba(92,255,146,.35);padding:8px;
+  }
+  #screen{
+    position:relative;height:100%;border:1px solid var(--br);
+    background:linear-gradient(180deg,#04120a 0%, #030d07 55%, #020a06 100%);
+    display:flex;flex-direction:column;overflow:hidden;
+  }
+  #screen::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:40;
+    background:repeating-linear-gradient(180deg, rgba(0,0,0,.16) 0 1px, rgba(0,0,0,0) 1px 3px),
+               radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,.55) 100%);
+  }
+
+  /* ---------------- ШАПКА ---------------- */
+  #hdr{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:5px 10px;border-bottom:1px solid var(--br);
+    color:#8effb4;font-size:13.5px;letter-spacing:.5px;white-space:nowrap;overflow:hidden;
+  }
+  #hdr .right{color:var(--g-dim)}
+  #hdr b{color:#b6ffd0;font-weight:normal}
+  #hdr .lnk{cursor:pointer;color:#b6ffd0}
+  #hdr .lnk:hover{color:#fff;text-decoration:underline}
+
+  /* ---------------- ТЕЛО ---------------- */
+  #body{flex:1;display:flex;min-height:0}
+  #side{width:268px;min-width:268px;border-right:1px solid var(--br);padding:10px 0;overflow-y:auto}
+  #side .item{
+    padding:6px 12px;cursor:pointer;font-size:13.5px;letter-spacing:.4px;
+    color:#7bffa8;border-left:2px solid transparent;user-select:none;white-space:nowrap;
+  }
+  #side .item:hover{background:#07200f;border-left-color:var(--g);color:#c6ffdb}
+  #side .item.active{background:#0a2c18;border-left-color:#8effb4;color:#d6ffe6}
+  #side .sep{height:1px;background:var(--br);margin:8px 10px}
+  #side .hint{padding:6px 12px;color:var(--g-dark);font-size:12px;line-height:1.45}
+  #side .mlink{padding:7px 12px;color:var(--y);cursor:pointer;font-size:13px;border-left:2px solid transparent}
+  #side .mlink:hover{background:#1a1707;border-left-color:var(--y)}
+
+  #main{flex:1;min-width:0;display:flex;flex-direction:column}
+  #content{flex:1;overflow-y:auto;padding:14px 18px}
+  #content::-webkit-scrollbar,#side::-webkit-scrollbar{width:10px}
+  #content::-webkit-scrollbar-thumb,#side::-webkit-scrollbar-thumb{background:#0f3d24}
+  #content::-webkit-scrollbar-track,#side::-webkit-scrollbar-track{background:#051409}
+
+  /* ---------------- СТРОКА ВВОДА ---------------- */
+  #prompt{border-top:1px solid var(--br);padding:6px 10px;display:flex;align-items:center;gap:6px;background:#030f08}
+  #prompt .ps1{color:#9dffc0;white-space:nowrap}
+  #input{flex:1;background:transparent;border:0;outline:0;color:#c9ffdd;font:inherit;text-shadow:inherit;caret-color:var(--g)}
+  #caret{width:9px;height:16px;background:var(--g);animation:bl .95s steps(1) infinite}
+  @keyframes bl{50%{opacity:0}}
+  #hintbar{
+    border-top:1px solid var(--br);padding:4px 10px;display:flex;justify-content:space-between;
+    color:var(--g-dim);font-size:12.5px;background:#020a06;white-space:nowrap;overflow:hidden;
+  }
+
+  /* ---------------- ЭЛЕМЕНТЫ ---------------- */
+  pre{margin:0;font:inherit;line-height:1.06;color:#7dffa8;text-shadow:0 0 12px rgba(92,255,146,.5);
+      overflow-x:auto;white-space:pre}
+  .dim{color:var(--g-dim)} .dark{color:var(--g-dark)} .ok{color:#5cff92}
+  .warn{color:var(--y)} .err{color:var(--r)} .hd{color:#b6ffd0}
+  .line{white-space:pre-wrap;word-break:break-word}
+  .row{display:flex;gap:18px;flex-wrap:wrap}
+  .panel{border:1px solid var(--br);padding:10px 12px;margin:10px 0;background:rgba(6,26,15,.35)}
+  .panel h4{margin:0 0 6px;font-weight:normal;color:#b6ffd0;letter-spacing:1px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media (max-width:900px){.grid2{grid-template-columns:1fr}}
+  .kpi{display:flex;gap:10px;flex-wrap:wrap;margin:8px 0}
+  .kpi div{border:1px solid var(--br);padding:6px 10px;min-width:120px}
+  .kpi b{display:block;color:var(--g-dim);font-weight:normal;font-size:11.5px;letter-spacing:1px}
+  .kpi span{font-size:19px;color:#a8ffc6}
+  button.cmd{
+    font:inherit;background:transparent;border:1px solid var(--br-bright);color:#8effb4;
+    padding:7px 14px;cursor:pointer;letter-spacing:.6px;text-shadow:inherit;
+  }
+  button.cmd:hover{background:#0b2a18;color:#d6ffe6}
+  .lvl{border-left:3px solid var(--br-bright);padding:6px 10px;margin:8px 0}
+  .lvl0{color:#d9cf7a}.lvl1{color:#7fd7e0}.lvl2{color:#9ad67a}
+  .toast{
+    position:absolute;left:50%;bottom:70px;transform:translateX(-50%);
+    border:1px solid var(--br-bright);background:#04150c;padding:7px 14px;color:#b6ffd0;
+    opacity:0;transition:opacity .25s;z-index:30;pointer-events:none;font-size:13px;max-width:80vw;text-align:center;
+  }
+  .toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div id="screen">
+
+  <div id="hdr">
+    <div><b>C:\SUBSISTENCESYSTEM&gt;</b> BACKROOMS OPERATING SYSTEM v2.0 CONSOLE &nbsp;<span class="dim">[MIRROR: 7777]</span></div>
+    <div class="right"><span id="hdrRight">—</span> &nbsp;·&nbsp; SUBSISTENCE CONSOLE <span class="lnk" onclick="run('HELP')">[СПРАВКА]</span></div>
+  </div>
+
+  <div id="body">
+    <div id="side"></div>
+    <div id="main"><div id="content"></div></div>
+  </div>
+
+  <div id="prompt">
+    <span class="ps1">C:\SUBSISTENCE&gt;</span>
+    <input id="input" autocomplete="off" spellcheck="false">
+    <span id="caret"></span>
+  </div>
+  <div id="hintbar">
+    <span id="hintLeft">&gt; СИСТЕМА ГОТОВА. ВЫБЕРИ КОМАНДУ ИЛИ НАЖМИ ЕЁ НОМЕР</span>
+    <span>TAB — автодополнение &nbsp; ↑ ↓ — история &nbsp; CTRL+C — выход &nbsp; ENTER — выполнить</span>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+/* =====================================================================
+   SUBSISTENCE — системная консоль (веб-версия меню игры).
+   Меню строго как на референсе: [1] ИГРАТЬ … [9] ВЫХОД.
+   Опросники вынесены отдельно: questions.html (все 57) и questions2.html (19 — те, что допилят игру)
+   ===================================================================== */
+
+const Store=(()=>{let mem={},ok=true;try{localStorage.setItem('__t','1');localStorage.removeItem('__t');}catch(e){ok=false;}
+ return{get(k,d){try{const v=ok?localStorage.getItem(k):mem[k];return v==null?d:JSON.parse(v);}catch(e){return d;}},
+        set(k,v){try{const s=JSON.stringify(v);if(ok)localStorage.setItem(k,s);else mem[k]=s;}catch(e){mem[k]=JSON.stringify(v);}}}})();
+
+/* ---------- логотип SUBSISTENCE (пиксель-арт 5×7) ---------- */
+const LOGO = [
+" ███  █   █ ████   ███  █████  ███  █████ █████ █   █  ███  █████",
+"█   █ █   █ █   █ █   █   █   █   █   █   █     ██  █ █   █ █    ",
+"█     █   █ █   █ █       █   █       █   █     █ █ █ █     █    ",
+" ███  █   █ ████   ███    █    ███    █   ████  █ █ █ █     ████ ",
+"    █ █   █ █   █     █   █       █   █   █     █ █ █ █     █    ",
+"█   █ █   █ █   █ █   █   █   █   █   █   █     █  ██ █   █ █    ",
+" ███   ███  ████   ███  █████  ███    █   █████ █   █  ███  █████"
+];
+
+const elSide=document.getElementById('side'), elContent=document.getElementById('content');
+const elInput=document.getElementById('input'), elHint=document.getElementById('hintLeft');
+const elToast=document.getElementById('toast');
+
+/* ---------- МЕНЮ (как на скриншоте-эталоне, 9 пунктов) ---------- */
+const MENU=[
+  {key:'1', id:'PLAY',     label:'ИГРАТЬ (PLAY)'},
+  {key:'2', id:'HOST',     label:'СОЗДАТЬ СЕРВЕР (HOST)'},
+  {key:'3', id:'JOIN',     label:'ПОДКЛЮЧИТЬСЯ (JOIN)'},
+  {key:'4', id:'MAP',      label:'КАРТА УРОВНЕЙ (MAP)'},
+  {key:'5', id:'SYSINFO',  label:'О СИСТЕМЕ (SYSINFO)'},
+  {key:'6', id:'SETTINGS', label:'НАСТРОЙКИ (SETTINGS)'},
+  {key:'7', id:'HELP',     label:'ПОМОЩЬ (HELP)'},
+  {key:'8', id:'CLS',      label:'ОЧИСТИТЬ (CLS)'},
+  {key:'9', id:'EXIT',     label:'ВЫХОД (QUIT)'}
+];
+const COMMANDS=['PLAY','HOST','JOIN','MAP','SYSINFO','SETTINGS','HELP','CLS','EXIT','QUESTIONS','SEED'];
+const QUESTIONS_PAGE='questions.html';
+
+/* ---------- утилиты ---------- */
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pad(n){return String(n).padStart(2,'0');}
+function now(){const d=new Date();return `${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;}
+function toast(m){elToast.textContent=m;elToast.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>elToast.classList.remove('show'),2400);}
+function tickClock(){document.getElementById('hdrRight').textContent=now()+' · версия 0.2.0 · ОТЛАДКА';}
+tickClock(); setInterval(tickClock,30000);
+
+const state={view:'dash',history:[],histIdx:-1,seed:Store.get('subsistence_seed',1337),host:false,online:false};
+
+/* ---------- боковое меню ---------- */
+function renderSide(){
+  elSide.innerHTML = MENU.map(m=>
+    `<div class="item${state.view.toUpperCase()===m.id?' active':''}" data-cmd="${m.id}">[${m.key}] ${esc(m.label)}</div>`
+  ).join('')
+  + `<div class="sep"></div>`
+  + `<div class="mlink" onclick="openQuestions()">▸ ОПРОСНИК ПРОЕКТА (40 вопросов) ↗</div>`
+  + `<div class="hint">Команды: PLAY · HOST · JOIN &lt;ip&gt; · MAP · SYSINFO · SETTINGS · HELP · CLS · EXIT</div>`;
+  elSide.querySelectorAll('.item').forEach(el=>el.onclick=()=>run(el.dataset.cmd));
+}
+function openQuestions(){
+  try{ const w=window.open(QUESTIONS_PAGE,'_blank'); if(!w) throw 0; toast('опросник открыт в новой вкладке'); }
+  catch(e){ toast('опросник: файл site/questions.html — открой его двойным кликом'); }
+}
+
+/* ---------- ВИДЫ ---------- */
+function viewDash(){
+  return `
+<pre>BACKROOMS BIOS v1.37 <span class="dim">(c) 1987 BACKROOMS CORP</span>
+
+ПРОЦЕССОР : SUBSISTENCE CORE 2.0 @ 30 Hz ......................... <span class="ok">OK</span>
+ПАМЯТЬ    : 65536K RAM / 640K АРХИТЕКТУРА УРОВНЯ ................. <span class="ok">OK</span>
+ИНТЕРФЕЙС : MIRROR 7777 / AOI 32 м / 128 ИГРОКОВ .................. <span class="ok">OK</span>
+НАКОПИТЕЛЬ: УРОВНИ 0 · 37 · 3 / 9 ТАБЛИЦ ЛУТА .................... <span class="ok">OK</span>
+
+ЗАГРУЗКА ...
+
+${LOGO.join('\n')}</pre>
+<div class="line" style="margin-top:10px">
+  <span class="hd">СИСТЕМА SUBSISTENCE 2.0 CONSOLE</span> — <span class="dim">режим выживания в Backrooms</span>
+</div>
+<div class="line" style="margin-top:12px">Доступные действия:</div>
+<div class="line">&gt; меню-карта системы SUBSISTENCE <span class="ok">[OK]</span> — MAP</div>
+<div class="line">&gt; Загрузка уровня 0 <span class="ok">[OK]</span> — PLAY</div>
+<div class="line">&gt; Статус ядра: ошибок не найдено <span class="ok">[OK]</span> — SYSINFO</div>
+<div class="line" style="margin-top:10px">Быстрый старт: <span class="hd">PLAY</span> — одиночная игра · <span class="hd">HOST</span> — создать сервер · <span class="hd">JOIN &lt;ip&gt;</span> — подключиться</div>
+<div class="line">Список всех команд: <span class="hd">HELP</span>. Карта уровней: <span class="hd">MAP</span>. Вопросы по проекту: <span class="warn">questions2.html</span> (19 рабочих) и <span class="warn">questions.html</span> (все 57).</div>
+<div class="panel" style="margin-top:14px">
+  <h4>ЯДРО ПРОЕКТА (реализовано в Unity-коде)</h4>
+  <div class="kpi">
+    <div><b>УРОВНИ</b><span>3</span></div>
+    <div><b>ТИРЫ ЛУТА</b><span>3</span></div>
+    <div><b>МОНСТРЫ</b><span>6</span></div>
+    <div><b>ПРЕДМЕТЫ</b><span>140+</span></div>
+    <div><b>СТРОЙБЛОКИ</b><span>12×5</span></div>
+    <div><b>МОДЕЛИ (FBX)</b><span>35</span></div>
+    <div><b>СЕТЬ</b><span>30 Гц</span></div>
+  </div>
+  <div class="line dim">Инвентарь 6+24+6 · прочность и ремонт −25 % · отдача и обвесы · броня по 9 типам урона ·
+  стройка 5 тиров со стабильностью и обвалами · Tool Cupboard и апкип · рейд-таблица C4/сачель ·
+  монстры с FSM (свет/шум) · радиация и хазмат · AOI-сетка 32 м, снапшоты 20 Гц</div>
+</div>
+<div class="row" style="margin-top:12px">
+  <button class="cmd" onclick="run('PLAY')">[1] ИГРАТЬ</button>
+  <button class="cmd" onclick="run('MAP')">[4] КАРТА УРОВНЕЙ</button>
+  <button class="cmd" onclick="openQuestions()">ОПРОСНИК: 40 ВОПРОСОВ ↗</button>
+</div>`;
+}
+
+function viewGame(){
+  return `
+<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">${state.host?'HOST':'PLAY'}</span></div>
+<div class="line">${state.host?'Создание сервера Mirror (порт 7777), тик 30 Гц ...':'Запуск одиночной сессии (LocalHost) ...'}</div>
+<pre style="margin-top:8px">[BOOT] subsistence core v0.2.0
+seed = ${state.seed}   (StreamingAssets/seed.txt)
+loading level0_corridors (Жёлтые коридоры) ... starts
+level0_corridors generated ... <span class="ok">ok</span>   комнат: 16, узлов лута: 34
+loading level1_poolrooms (Бассейны) ... starts
+level1_poolrooms generated ... <span class="ok">ok</span>   комнат: 14, водоёмов: 6
+loading level2_powerstation (Электростанция) ... starts
+level2_powerstation generated ... <span class="ok">ok</span>   турбин: 14, реактор: 1
+loot tables: tier1=3 tier2=3 tier3=3
+populating loot nodes ... starts
+loot populated ... <span class="ok">ok</span>
+spawning monsters ... starts
+monsters spawned ... <span class="ok">ok</span>   Smiler 6 · Hound 8 · SkinStealer 7
+building nav graph ... starts
+nav graph nodes=1894 ... <span class="ok">ok</span>
+creating player ... starts
+player ready ... <span class="ok">ok</span>
+hud + inventory ... starts
+ui ready ... <span class="ok">ok</span>
+<span class="dim">[NET] transport=${state.host?'Mirror':'LocalHost'} tick=30Hz snapshot=20Hz aoi=32m</span>
+<span class="dim">server-authoritative: damage/build/loot validated on server</span></pre>
+<div class="line ok" style="margin-top:8px">subsistence ready. good luck. level 0 has no exit signs.</div>
+<div class="grid2" style="margin-top:12px">
+  <div class="panel"><h4 class="lvl0">LEVEL 0 — ЖЁЛТЫЕ КОРИДОРЫ (TIER 1)</h4>
+    <div class="line dim">обои · ковролин · гудящие лампы · Smiler идёт на свет</div>
+    <div class="line dim">Лут: самопал, waterpipe, лук, хазмат (редко), зелёная ключ-карта</div></div>
+  <div class="panel"><h4 class="lvl1">LEVEL 37 — БАССЕЙНЫ (TIER 2)</h4>
+    <div class="line dim">плитка · вода 0.4–2.6 м · эхо · Hound 6.8 м/с</div>
+    <div class="line dim">Лут: MP5, pump, roadsign-броня, сачель, синяя ключ-карта</div></div>
+  <div class="panel"><h4 class="lvl2">LEVEL 3 — ЭЛЕКТРОСТАНЦИЯ (TIER 3)</h4>
+    <div class="line dim">бетон · реактор 12 рад/с · Свежеватели · ТВЭЛ-кассеты</div>
+    <div class="line dim">Лут: AK/M249/РПГ, металл-броня, C4, красная ключ-карта</div></div>
+  <div class="panel"><h4>СЕРВЕР</h4>
+    <div class="line">Игроков: ${state.host?'100 (макс)':'1'}</div>
+    <div class="line">Тик 30 Гц · снапшоты 20 Гц · трафик ≈ 12 Мбит/с на 100 игроков</div>
+    <div class="line dim">Anti-cheat: rate-limit команд, контроль скорости, привилегии TC</div></div>
+</div>
+<div class="row" style="margin-top:12px">
+  <button class="cmd" onclick="run('MAP')">КАРТА</button>
+  <button class="cmd" onclick="openQuestions()">ОПРОСНИК ↗</button>
+  <button class="cmd" onclick="run('CLS')">В КОНСОЛЬ</button>
+</div>`;
+}
+
+function viewMap(){
+  return `
+<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">MAP</span></div>
+<div class="line">КАРТА СИСТЕМЫ SUBSISTENCE — 3 уровня, 3 тира лута <span class="ok">[OK]</span></div>
+<div class="panel">
+  <h4 class="lvl0">LEVEL 0 — ЖЁЛТЫЕ КОРИДОРЫ · TIER 1 · старт</h4>
+  <pre>  ┌───────────────────────────┐      Сетка 6 м, потолок 3.2 м, колонны,
+  │ ░░░░░░░░░░░░░░░░░░░░░░░░░ │      лампы-решётки каждые 12 м, гул 60 Гц.
+  │ ░ ██ ░░░░░ ██ ░░░░░ ██ ░░ │      Опасность: Smiler (идёт на свет),
+  │ ░░░░░░░░░░░░░░░░░░░░░░░░░ │      в одинаковых коридорах легко заблудиться.
+  │ ░░ ██ ░░░ ▼ ░░░░ ██ ░░░ ▼ │      ▼ — шахты на Level 37 (3 шт.)
+  └───────────────────────────┘      Лут: ящики, картотеки, бочки</pre>
+</div>
+<div class="panel">
+  <h4 class="lvl1">LEVEL 37 — БАССЕЙНЫ · TIER 2</h4>
+  <pre>  ┌───────────────────────────┐      Вода 0.4–2.6 м: замедление, шум,
+  │ ░░░░≈≈≈≈≈≈░░░░≈≈≈≈≈≈≈░░░░ │      переохлаждение, запас воздуха 5 с.
+  │ ░░░░≈≈≈≈≈≈░░░░≈≈≈≈≈≈≈░░░░ │      Эхо: слышимость усилена.
+  │ ░░ ▣ ░≈≈≈≈░░░ ▣ ░≈≈≈≈ ░░░ │      Опасность: Hound, Partygoer, Clump.
+  │ ░░░░░░░░░▲░░░░░░░░░░▲░░░░ │      ▲ — подъёмы/сходы, ▣ — насосные.
+  └───────────────────────────┘      Синяя ключ-карта — в насосных</pre>
+</div>
+<div class="panel">
+  <h4 class="lvl2">LEVEL 3 — ЭЛЕКТРОСТАНЦИЯ · TIER 3 · эндшпиль</h4>
+  <pre>  ┌───────────────────────────┐      Реактор: 12 рад/с, разливы ОЖ 4 рад/с
+  │ ░░ ▤  ░░░░░░░░░░  ▤  ░░░░ │      без хазмата — смерть за ~2 минуты.
+  │ ░░░░░░░░░ ╬ ╬ ╬ ░░░░░░░░░ │      Опасность: Skin-Stealer, радиация реактора.
+  │ ░░ ▤  ░░ ╬ ◉ ╬ ░░  ▤  ░░░ │      Эндшпиль: 3 ключ-карты + ТВЭЛ → «выход»
+  │ ░░░░░░░░░ ╬ ╬ ╬ ░░░░░░░░░ │      ╬ — ТВЭЛ-кассеты, ◉ — реактор, ▤ — турбины
+  └───────────────────────────┘      Стройка запрещена в реакторном зале</pre>
+</div>
+<div class="line dim">Переходы: лестничные шахты + «провалы» (noclip-зоны) — оба варианта поддержаны генератором.</div>`;
+}
+
+function viewSysinfo(){
+  return `
+<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">SYSINFO</span></div>
+<pre style="margin-top:8px">СИСТЕМА          : SUBSISTENCE OS v0.2.0 <span class="ok">[ОК]</span>
+ЯДРО ГЕЙМПЛЕЯ    : инвентарь / прочность / оружие / броня / стройка / рейды <span class="ok">[ОК]</span>
+УРОВНИ           : 3/3 сгенерированы <span class="ok">[ОК]</span>
+ЛУТ              : 9 таблиц, 3 тира <span class="ok">[ОК]</span>
+МОНСТРЫ          : 6 типов (Smiler / Hound / Partygoer / Clump / Skin-Stealer / Bacteria) <span class="ok">[ОК]</span>
+МОДЕЛИ           : 35 FBX / 35 GLB / 36 превью <span class="ok">[ОК]</span>
+СЕТЬ             : Mirror-адаптер готов, AOI 32 м, античит-валидатор <span class="ok">[ОК]</span>
+ОШИБОК           : <span class="ok">0</span></pre>
+<div class="panel" style="margin-top:12px"><h4>О ПРОЕКТЕ</h4>
+<div class="line"><span class="hd">SUBSISTENCE</span> — сетевой survival-хоррор: механики Rust (строительство, рейды,
+прочность, лут, крафт) в мире Backrooms. Три уровня = три тира лута.</div>
+<div class="line dim">Unity 2022.3.62f2 · HDRP 14.0.12 · Mirror-адаптер · 22 скрипта C# (~8 500 строк) ·
+35 моделей FBX/GLB (Blender 4.3.2 LTS, tools/blender/*.py) · документы в docs/.</div>
+</div>
+<div class="line dim">Дальнейшие шаги: спринт 1 — анимации и звук коридоров; спринт 2 — рейды и апкип;
+спринт 5 — нагрузочный тест на 100 ботов (см. docs/ROADMAP.md).</div>`;
+}
+
+function viewSettings(){
+  const s=Store.get('subsistence_settings',{fov:90,sens:2.2});
+  return `
+<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">SETTINGS</span></div>
+<div class="line">НАСТРОЙКИ СИСТЕМЫ (то, что фиксируем в проекте)</div>
+<div class="panel"><h4>ГРАФИКА</h4>
+  <div class="line">Пайплайн: <span class="ok">HDRP 14.0.12</span> · объёмный туман 0.35 · SSAO 0.6 · тени 60 м · bloom 0.15</div>
+  <div class="line">FOV: <input id="set_fov" type="number" min="60" max="120" value="${s.fov}" style="width:70px;background:#020a06;border:1px solid #175c35;color:#a8ffc6;font:inherit">° &nbsp;
+  Чувствительность: <input id="set_sens" type="number" step="0.1" min="0.5" max="8" value="${s.sens}" style="width:80px;background:#020a06;border:1px solid #175c35;color:#a8ffc6;font:inherit"></div>
+</div>
+<div class="panel"><h4>СЕРВЕР</h4>
+  <div class="line">Порт 7777 · тик 30 Гц · снапшоты 20 Гц · AOI 32 м · макс. игроков 128</div>
+  <div class="line">Seed мира: <input id="set_seed" type="number" value="${state.seed}" style="width:120px;background:#020a06;border:1px solid #175c35;color:#a8ffc6;font:inherit"> <button class="cmd" onclick="applySeed()">ПРИМЕНИТЬ</button></div>
+</div>
+<div class="panel"><h4>УПРАВЛЕНИЕ (как в игре)</h4>
+  <pre>WASD — движение · SHIFT — бег · CTRL/C — присед · Z — лёж · SPACE — прыжок
+ЛКМ — огонь/поставить · ПКМ — прицел/апгрейд · R — перезарядка/поворот
+E — взаимодействие/лут · SHIFT+ЛКМ — быстрый перенос · TAB — инвентарь
+Q — крафт / радиальное меню постройки (удержание) · G — выбросить · F — съесть
+M — карта · V — голосовой чат · ENTER — чат</pre>
+</div>
+<div class="row"><button class="cmd" onclick="saveSettings()">СОХРАНИТЬ</button></div>`;
+}
+
+function viewHelp(){
+  return `
+<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">HELP</span></div>
+<div class="line" style="margin-top:8px">СПИСОК КОМАНД (вводи в строке C:\\SUBSISTENCE&gt; или жми номер в меню слева):</div>
+<pre style="margin-top:8px">PLAY              запустить одиночную сессию (загрузка уровня 0 → 37 → 3)
+HOST              создать сервер (Mirror, порт 7777, до 128 игроков)
+JOIN &lt;ip&gt;         подключиться к серверу (например: JOIN 127.0.0.1)
+MAP               карта трёх уровней с легендой и тирами лута
+SYSINFO           состояние систем проекта и краткое описание
+SETTINGS          графические/сетевые настройки
+HELP              этот список
+CLS               очистить экран
+EXIT              выход (в браузере — просто закрой вкладку)
+SEED &lt;число&gt;      служебная: сменить seed генерации мира
+QUESTIONS         открыть опросник проекта (40 вопросов, отдельная страница)</pre>
+<div class="line dim" style="margin-top:10px">Горячие клавиши: ↑ ↓ — история команд · TAB — автодополнение · CTRL+C — отмена ввода · ENTER — выполнить.</div>`;
+}
+
+const VIEWS={dash:viewDash, game:viewGame, map:viewMap, sysinfo:viewSysinfo, settings:viewSettings, help:viewHelp};
+
+function render(){
+  renderSide();
+  elContent.innerHTML=(VIEWS[state.view]||viewDash)();
+  elContent.scrollTop=0;
+}
+function setView(v){state.view=v;render();}
+
+/* ---------- печать загрузки ---------- */
+const BOOT_TEXT=
+`[BOOT] subsistence core v0.2.0
+loading level0_corridors ... starts
+level0_corridors generated ... ok
+loading level1_poolrooms ... starts
+level1_poolrooms generated ... ok
+loading level2_powerstation ... starts
+level2_powerstation generated ... ok
+populating loot nodes ... starts
+loot populated ... ok
+spawning monsters ... starts
+monsters spawned ... ok
+building nav graph ... starts
+nav graph ready ... ok
+creating player ... starts
+player ready ... ok`;
+
+function typeBoot(text){
+  const lines=text.split('\n');
+  elContent.innerHTML=`<div class="line"><span class="dark">C:\\SUBSISTENCE&gt;</span> <span class="hd">${state.host?'HOST':'PLAY'}</span></div><pre id="bootline"></pre>`;
+  const out=document.getElementById('bootline');
+  let i=0,j=0,cur="";
+  const step=()=>{
+    if(i>=lines.length){setTimeout(()=>setView('game'),280);return;}
+    const line=lines[i];
+    if(j<line.length){const chunk=Math.min(4,line.length-j);cur+=line.substr(j,chunk);j+=chunk;out.textContent=cur;setTimeout(step,6);}
+    else{cur+="\n";j=0;i++;setTimeout(step,40);}
+  };
+  step();
+}
+
+/* ---------- команды ---------- */
+function run(cmdRaw,argsRaw){
+  const args=Array.isArray(argsRaw)?argsRaw:(argsRaw==null?[]:[argsRaw]);
+  const cmd=String(cmdRaw||'').trim().toUpperCase();
+  elHint.textContent='> '+cmd+(args.length?' '+args.join(' '):'');
+  switch(cmd){
+    case '1': case 'PLAY': state.host=false; state.view='game'; typeBoot(BOOT_TEXT); toast('PLAY: загрузка уровней'); break;
+    case '2': case 'HOST': state.host=true;  state.view='game'; typeBoot(BOOT_TEXT); toast('HOST: сервер Mirror запущен (7777)'); break;
+    case '3': case 'JOIN': {
+      const ip=args[0]||'127.0.0.1'; state.online=true; state.host=false; setView('game');
+      elHint.textContent=`> подключение к ${ip}:7777 ... установлено (Mirror, 30 Гц)`;
+      toast('JOIN: '+ip+':7777'); break; }
+    case '4': case 'MAP': case 'MAPS': setView('map'); break;
+    case '5': case 'SYSINFO': case 'ABOUT': case 'STATUS': setView('sysinfo'); break;
+    case '6': case 'SETTINGS': setView('settings'); break;
+    case '7': case 'HELP': case '?': setView('help'); break;
+    case '8': case 'CLS': case 'CLEAR': setView('dash'); toast('экран очищен'); break;
+    case '9': case 'EXIT': case 'QUIT':
+      elContent.innerHTML=`<div class="line">завершение сеанса...</div>
+        <div class="line dim">В Unity-сборке это закрывает приложение (Application.Quit()).</div>
+        <div class="line">Спасибо, что играешь в SUBSISTENCE. <span class="ok">Удачи на Level 0 — там нет указателей выхода.</span></div>`;
+      elSide.innerHTML=''; break;
+    case 'QUESTIONS': case 'BRIF': case 'OPROS': openQuestions(); break;
+    case 'SEED': {
+      const n=parseInt(args[0]||'',10);
+      if(isNaN(n)){toast('SEED: укажи число, например SEED 1337');break;}
+      state.seed=n; Store.set('subsistence_seed',n); toast('seed = '+n); break; }
+    default:
+      elHint.textContent=`> неизвестная команда: ${esc(cmd)} — набери HELP`;
+      toast('неизвестная команда: '+cmd);
+  }
+}
+
+/* ---------- строка ввода ---------- */
+elInput.addEventListener('keydown',e=>{
+  if(e.key==='Enter'){
+    const v=elInput.value.trim(); if(!v) return;
+    const parts=v.split(/\s+/);
+    state.history.push(v); state.histIdx=state.history.length;
+    elInput.value=''; run(parts[0],parts.slice(1));
+  } else if(e.key==='ArrowUp'){
+    if(!state.history.length) return;
+    state.histIdx=Math.max(0,state.histIdx-1);
+    elInput.value=state.history[state.histIdx]||''; e.preventDefault();
+  } else if(e.key==='ArrowDown'){
+    if(!state.history.length) return;
+    state.histIdx=Math.min(state.history.length,state.histIdx+1);
+    elInput.value=state.history[state.histIdx]||''; e.preventDefault();
+  } else if(e.key==='Tab'){
+    e.preventDefault();
+    const cur=elInput.value.toUpperCase();
+    const hit=COMMANDS.find(c=>c.startsWith(cur)); if(hit) elInput.value=hit;
+  } else if(e.key==='c'&&e.ctrlKey){
+    elInput.value=''; toast('ввод отменён');
+  }
+});
+
+/* ---------- глобальные хоткеи ---------- */
+document.addEventListener('keydown',e=>{
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'||tag==='TEXTAREA') return;
+  if(e.key>='1'&&e.key<='9'){ const m=MENU.find(m=>m.key===e.key); if(m) run(m.id); }
+  else if(e.key==='Tab'){ e.preventDefault(); elInput.focus(); }
+  else if(e.key.length===1){ elInput.focus(); }
+});
+
+/* ---------- прочее ---------- */
+function saveSettings(){
+  const fov=parseInt((document.getElementById('set_fov')||{}).value||'90',10);
+  const sens=parseFloat((document.getElementById('set_sens')||{}).value||'2.2');
+  Store.set('subsistence_settings',{fov,sens});
+  toast(`настройки сохранены (FOV ${fov}, чувствительность ${sens})`);
+}
+function applySeed(){
+  const n=parseInt((document.getElementById('set_seed')||{}).value||'1337',10);
+  state.seed=isNaN(n)?1337:n; Store.set('subsistence_seed',state.seed);
+  toast('seed = '+state.seed);
+}
+
+render(); run('CLS');
+setTimeout(()=>{elInput.focus();},300);
+</script>
+</body>
+</html>

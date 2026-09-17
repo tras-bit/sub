@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SUBSISTENCE — опросник проекта (57 вопросов)</title>
+<style>
+  :root{
+    --bg:#04120a; --bg-deep:#020a06; --br:#0f3d24; --br-bright:#1c7a45;
+    --g:#5cff92; --g-bright:#b6ffd0; --g-dim:#2f8c53; --g-dark:#175c35;
+    --y:#ffe680; --r:#ff6b5e; --sel:#123c22;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);}
+  body{
+    font-family:"Courier New",Consolas,"Liberation Mono",Menlo,monospace;
+    font-size:15px;color:var(--g);text-shadow:0 0 7px rgba(92,255,146,.28);
+  }
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:99;
+    background:repeating-linear-gradient(180deg, rgba(0,0,0,.13) 0 1px, rgba(0,0,0,0) 1px 3px);
+  }
+  a{color:var(--g-bright)}
+
+  /* ---------- ШАПКА ---------- */
+  header{
+    position:sticky;top:0;z-index:50;background:linear-gradient(180deg,#051809,#031008);
+    border-bottom:1px solid var(--br);
+  }
+  .bar1{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:8px 14px 6px;flex-wrap:wrap}
+  .bar1 .t{color:var(--g-bright);letter-spacing:.5px}
+  .bar1 .t small{color:var(--g-dim)}
+  .bar1 .clock{color:var(--g-dim);font-size:13px}
+  .bar2{display:flex;align-items:center;gap:12px;padding:0 14px 6px}
+  .pbar{flex:1;height:12px;border:1px solid var(--br);position:relative;min-width:140px}
+  .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#175c35,#5cff92);transition:width .2s}
+  .pbar span{position:absolute;right:-92px;top:-2px;font-size:12.5px;color:var(--g-dim);white-space:nowrap}
+  .bar3{display:flex;gap:8px;padding:0 14px 10px;flex-wrap:wrap}
+  button{
+    font:inherit;font-size:13px;background:transparent;border:1px solid var(--br-bright);color:#8effb4;
+    padding:6px 12px;cursor:pointer;letter-spacing:.4px;text-shadow:inherit;
+  }
+  button:hover{background:#0b2a18;color:#e2fff0}
+  button.primary{border-color:var(--y);color:var(--y)}
+  button.primary:hover{background:#2a2408}
+
+  /* ---------- РАЗМЕТКА ---------- */
+  .wrap{display:grid;grid-template-columns:236px 1fr;gap:0;align-items:start}
+  nav{position:sticky;top:118px;padding:14px 10px;border-right:1px solid var(--br);min-height:70vh}
+  nav .g{padding:5px 8px;cursor:pointer;font-size:13.5px;color:#7bffa8;border-left:2px solid transparent}
+  nav .g:hover{background:#07200f;border-left-color:var(--g);color:#d6ffe6}
+  nav .g b{color:var(--g-dim);font-weight:normal}
+  nav .g i{float:right;font-style:normal;color:var(--g-dark)}
+  nav .g.done i{color:var(--g)}
+  nav .hint{color:var(--g-dark);font-size:12px;padding:10px 8px 0;line-height:1.4}
+  nav .hint kbd{border:1px solid var(--g-dark);padding:0 4px;border-radius:2px}
+
+  main{padding:16px 18px 60px;min-width:0}
+  h2{font-size:15px;font-weight:normal;color:var(--g-bright);letter-spacing:1px;margin:26px 0 10px;
+     border-bottom:1px dashed var(--g-dark);padding-bottom:6px}
+  h2:first-child{margin-top:4px}
+  h2 small{color:var(--g-dim);letter-spacing:0}
+
+  .q{border:1px solid var(--br);background:rgba(5,22,13,.42);padding:10px 12px;margin:10px 0}
+  .q.focus{border-color:var(--y);background:rgba(24,24,8,.35)}
+  .q .hdr{display:flex;gap:10px;align-items:baseline}
+  .q .num{color:var(--y);min-width:34px}
+  .q .txt{color:#a8ffc6;flex:1}
+  .q .clr{border:0;color:var(--g-dark);cursor:pointer;font:inherit;font-size:12px;padding:0 4px;background:transparent}
+  .q .clr:hover{color:var(--r)}
+  .chips{display:flex;flex-wrap:wrap;gap:6px;margin:9px 0 0 44px}
+  .chip{border:1px solid var(--g-dark);padding:5px 10px;font-size:12.5px;color:#7bffa8;cursor:pointer;user-select:none}
+  .chip:hover{border-color:var(--g);color:#d6ffe6}
+  .chip.sel{background:var(--sel);border-color:var(--y);color:var(--y)}
+  .chip .k{color:var(--g-dark);font-size:11px}
+  .chip.rec .k::before{content:"★ "}
+  .row2{display:flex;gap:8px;align-items:center;margin:8px 0 0 44px}
+  .row2 input[type=text]{
+    flex:1;background:var(--bg-deep);border:1px solid var(--g-dark);color:#a8ffc6;font:inherit;font-size:12.5px;
+    padding:5px 8px;min-width:120px;
+  }
+  .row2 .st{font-size:11.5px;color:var(--g-dark);white-space:nowrap;min-width:96px;text-align:right}
+  .row2 .st.ok{color:var(--g)}
+
+  footer{border-top:1px solid var(--br);padding:14px 18px 40px;color:var(--g-dim);font-size:13px;line-height:1.6}
+  pre{background:var(--bg-deep);border:1px solid var(--br);padding:10px;font:inherit;font-size:12.5px;
+      color:#a8ffc6;max-height:260px;overflow:auto;white-space:pre-wrap}
+
+  .toast{
+    position:fixed;left:50%;bottom:26px;transform:translateX(-50%);z-index:100;
+    border:1px solid var(--br-bright);background:#04150c;padding:8px 16px;color:var(--g-bright);
+    opacity:0;transition:opacity .25s;pointer-events:none;max-width:88vw;text-align:center;
+  }
+  .toast.show{opacity:1}
+
+  @media (max-width:860px){
+    .wrap{grid-template-columns:1fr}
+    nav{position:static;border-right:0;border-bottom:1px solid var(--br);min-height:0}
+    .chips,.row2{margin-left:0}
+  }
+
+  /* ---------- ПЕЧАТЬ (чтобы отдать ответы на бумаге/в PDF) ---------- */
+  @media print{
+    :root{--bg:#fff}
+    body{background:#fff;color:#111;text-shadow:none}
+    body::after{display:none}
+    header{position:static;background:#fff;border-bottom:1px solid #999}
+    .bar1 .t,.bar1 .clock{color:#111}
+    .bar3,nav,.toast,.q .clr,.row2 input[type=text]{display:none !important}
+    .wrap{grid-template-columns:1fr}
+    main{padding:0}
+    h2{color:#111;border-color:#999}
+    .q{border-color:#bbb;background:#fff;page-break-inside:avoid}
+    .q .txt{color:#111}
+    .chip{color:#333;border-color:#bbb}
+    .chip.sel{background:#eee;border-color:#111;color:#000;font-weight:bold}
+    footer{color:#333;border-color:#999}
+    pre{display:none}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar1">
+    <div class="t">SUBSISTENCE — ОПРОСНИК ПРОЕКТА <small>· 40 ВОПРОСОВ · v1.0</small></div>
+    <div class="clock" id="clock">—</div>
+  </div>
+  <div class="bar2">
+    <span class="ok" id="cnt">0</span>
+    <div class="pbar"><i id="bari"></i><span id="cnt2">0 / 57 · 0 %</span></div>
+  </div>
+  <div class="bar3">
+    <button class="primary" onclick="copyJson()">СКОПИРОВАТЬ JSON</button>
+    <button onclick="downloadJson()">СКАЧАТЬ subsistence_answers.json</button>
+    <button onclick="document.getElementById('file').click()">ЗАГРУЗИТЬ JSON</button>
+    <button onclick="fillRecommended()">ЗАПОЛНИТЬ РЕКОМЕНДАЦИЯМИ</button>
+    <button onclick="jumpUnanswered()">БЛИЖАЙШИЙ БЕЗ ОТВЕТА</button>
+    <button onclick="window.print()">ПЕЧАТЬ / PDF</button>
+    <button onclick="resetAll()">СБРОСИТЬ</button>
+    <input type="file" id="file" accept=".json,application/json" style="display:none">
+  </div>
+</header>
+
+<div class="wrap">
+  <nav id="nav"></nav>
+  <main id="main"></main>
+</div>
+
+<footer>
+  <div><b>Как отдать ответы:</b> «СКОПИРОВАТЬ JSON» → вставить в чат, либо «СКАЧАТЬ subsistence_answers.json» и приложить файл.
+  Файл открывается двойным кликом с диска — интернет не нужен, ничего не устанавливается.</div>
+  <div>Ответы сохраняются в браузере автоматически (можно закрыть и вернуться позже). «ЗАГРУЗИТЬ JSON» восстанавливает их из файла.</div>
+  <div style="margin-top:10px;color:var(--g-dark)">Горячие клавиши: клик по вопросу — он в фокусе, затем <kbd>1</kbd>…<kbd>6</kbd> выбирают вариант ·
+  <kbd>0</kbd> очищает ответ · <kbd>Tab</kbd> — переход по полям.</div>
+  <div style="margin-top:12px">
+    <div class="g" style="color:var(--g-bright)">ТЕКУЩИЙ JSON (можно скопировать прямо отсюда)</div>
+    <pre id="out">{
+}</pre>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ===========================================================================
+   SUBSISTENCE — опросник для ПК.
+   Один файл, без интернета и без установки: открывается двойным кликом.
+   ★ у варианта — моя рекомендация (можно не соглашаться и выбрать любой другой).
+   =========================================================================== */
+
+const GROUPS = [
+ { id:'A', title:'A. Общее и техническое', sub:'название, движок, платформа', qs:[
+   {id:'game_title', t:'Название игры в Steam и в меню', o:['Subsistence','SUBSISTENCE: LEVEL 0','Русское название + English подзаголовок'], rec:'Subsistence'},
+   {id:'pipeline',  t:'Рендер-пайплайн', o:['HDRP (как сейчас)','URP — легче для слабых ПК','Built-in (самый лёгкий)'], rec:'HDRP (как сейчас)'},
+   {id:'unity',     t:'Версия Unity', o:['2022.3.62f2 (как заказано)','Unity 6 LTS','Другая — впиши'], rec:'2022.3.62f2 (как заказано)'},
+   {id:'perf',      t:'Целевой FPS и железо', o:['60 FPS / GTX 1060','120 FPS / RTX 3060','30 FPS — максимум картинки'], rec:'60 FPS / GTX 1060'},
+   {id:'platform',  t:'Платформы и темп разработки', o:['Windows + Linux-сервер, 8 спринтов','Срочно — сокращаем объём','Только Windows'], rec:'Windows + Linux-сервер, 8 спринтов'}
+ ]},
+ { id:'B', title:'B. Мир, уровни, прогресс', sub:'3 уровня, вайпы, эндшпиль', qs:[
+   {id:'scale',         t:'Размер сервера на старте', o:['100+ игроков','10–30 игроков','Кооп 1–4'], rec:'100+ игроков'},
+   {id:'wipe',          t:'Длина вайпа', o:['2 недели','1 неделя','1 месяц'], rec:'2 недели'},
+   {id:'level_size',    t:'Размер каждого уровня', o:['2×2 км','1×1 км','4×4 км'], rec:'2×2 км'},
+   {id:'connect_levels',t:'Как связаны три уровня', o:['Лестницы-шахты (как сейчас)','«Провалы» (noclip-зоны)','Лифты по ключ-картам'], rec:'Лестницы-шахты (как сейчас)'},
+   {id:'weather',       t:'События (затопление, выброс радиации)', o:['Есть, 2 раза в сутки','Убрать'], rec:'Есть, 2 раза в сутки'},
+   {id:'endgame',       t:'Эндшпиль', o:['3 ключ-карты + ТВЭЛ → «выход»','Только PvP за топ-лут','Бесконечный прогресс без финала'], rec:'3 ключ-карты + ТВЭЛ → «выход»'}
+ ]},
+ { id:'C', title:'C. Выживание', sub:'еда, вода, рассудок, лут', qs:[
+   {id:'sanity',      t:'Рассудок (MIND)', o:['Полная механика (как сейчас)','Упростить до эффектов','Убрать'], rec:'Полная механика (как сейчас)'},
+   {id:'starting_kit',t:'Стартовый набор', o:['Камень + факел + план + бинты (Rust)','Только фонарь (Backrooms)','Пустые руки'], rec:'Камень + факел + план + бинты (Rust)'},
+   {id:'water',       t:'Вода и жажда', o:['Полная механика + хлорированная вода','Только чистая вода'], rec:'Полная механика + хлорированная вода'},
+   {id:'food',        t:'Еда', o:['Охота + консервы + готовка','Только консервы из ящиков'], rec:'Охота + консервы + готовка'},
+   {id:'radiation',   t:'Радиация на Level 3', o:['Нужен хазмат (как сейчас)','Слабее, без хазмата','Смертельная зона — 2 минуты'], rec:'Нужен хазмат (как сейчас)'},
+   {id:'loot_respawn',t:'Респавн лута в ящиках', o:['15 минут','5 минут','30 минут'], rec:'15 минут'},
+   {id:'airdrop',     t:'Аирдроп «грузовой контейнер»', o:['Есть (приманка в бассейнах)','Убрать'], rec:'Есть (приманка в бассейнах)'}
+ ]},
+ { id:'D', title:'D. Стройка, рейды, транспорт', sub:'это и есть «Rust до мелочей»', qs:[
+   {id:'build_grid',  t:'Сетка строительства', o:['3×3 м (Rust, как сейчас)','4×4 м — проще строить'], rec:'3×3 м (Rust, как сейчас)'},
+   {id:'blueprints',  t:'Чертежи и исследования', o:['Через стол исследований (Rust)','Свободный крафт'], rec:'Через стол исследований (Rust)'},
+   {id:'durability',  t:'Прочность предметов', o:['Полная (оружие / броня / инструменты)','Только оружие','Без прочности'], rec:'Полная (оружие / броня / инструменты)'},
+   {id:'decay',       t:'Гниение построек и апкип', o:['Есть + Tool Cupboard','Отключить гниение'], rec:'Есть + Tool Cupboard'},
+   {id:'raid',        t:'Рейды (C4 / сачель / ракеты)', o:['Полная копия Rust','Ослабить на 20–30 %','Упростить (рейд-часы)'], rec:'Полная копия Rust'},
+   {id:'raid_hours',  t:'Рейд-часы', o:['24/7 (хардкор)','Окно 18:00–24:00 МСК'], rec:'24/7 (хардкор)'},
+   {id:'build_zones', t:'Запретные зоны стройки', o:['У входов и в реакторном зале','Строить можно везде'], rec:'У входов и в реакторном зале'},
+   {id:'transport',   t:'Транспорт', o:['Вагонетки / лифты на станции','Только бег','+ самокаты/тележки для лута'], rec:'Вагонетки / лифты на станции'}
+ ]},
+ { id:'E', title:'E. Монстры и звук', sub:'кто живёт в уровнях', qs:[
+   {id:'monsters', t:'Поведение монстров', o:['Реагируют на свет и шум (как сейчас)','Стаями, агрессивнее','Одиночки, тише'], rec:'Реагируют на свет и шум (как сейчас)'},
+   {id:'smiler',   t:'Smiler', o:['Истребимый (120 HP)','Неубиваемый «гонитель»','Редкий, но очень живучий'], rec:'Истребимый (120 HP)'},
+   {id:'boss',     t:'Босс Bacteria', o:['Есть, в реакторном зале','Рейдовое событие по таймеру','Убрать босса'], rec:'Есть, в реакторном зале'},
+   {id:'audio',    t:'Звук', o:['Позиционный 3D + гул ламп (как сейчас)','Минимум — ради размера билда'], rec:'Позиционный 3D + гул ламп (как сейчас)'},
+   {id:'voice_ai', t:'Озвучка монстров', o:['Процедурная сейчас, актёры позже','Только процедурная'], rec:'Процедурная сейчас, актёры позже'}
+ ]},
+ { id:'F', title:'F. Сеть, общение, честность', sub:'100+ игроков, античит', qs:[
+   {id:'net',      t:'Сетевое решение', o:['Mirror (как сейчас)','Netcode for GameObjects','Photon'], rec:'Mirror (как сейчас)'},
+   {id:'voice',    t:'Голосовой чат', o:['Proximity 20 м + рация','Только текстовый чат'], rec:'Proximity 20 м + рация'},
+   {id:'ff',       t:'Дружественный огонь', o:['Полный (как в Rust)','Отключён в группе'], rec:'Полный (как в Rust)'},
+   {id:'groups',   t:'Группы и кланы', o:['До 8 человек','Без ограничений','Без групп'], rec:'До 8 человек'},
+   {id:'anticheat',t:'Античит', o:['Своя серверная валидация (как сейчас)','+ EAC','Только админы'], rec:'Своя серверная валидация (как сейчас)'},
+   {id:'modding',  t:'Моды и плагины', o:['Открытый API (как Oxide)','Закрытая игра'], rec:'Открытый API (как Oxide)'}
+ ]},
+ { id:'G', title:'G. Экономика, арт, монетизация', sub:'последние штрихи', qs:[
+   {id:'skins',     t:'Скины предметов', o:['Есть магазин скинов','Убрать'], rec:'Есть магазин скинов'},
+   {id:'trading',   t:'Торговля', o:['Вендинг-автоматы + обмен','Без торговли','NPC-торговец в безопасной комнате'], rec:'Вендинг-автоматы + обмен'},
+   {id:'art_style', t:'Стиль моделей', o:['Ультра-реализм (текущий путь)','Стилизованный (легче)'], rec:'Ультра-реализм (текущий путь)'}
+ ]} },
+ { id:'H', title:'H. Верстаки, киянка, билд', sub:'новое в v0.2 — отвечай по номерам', qs:[
+   {id:'bench_upgrade', t:'Апгрейд верстака на месте', o:['Да: WB1 → WB2 → WB3 предметом в руках (как в Rust)','Только снос и постройка нового'], rec:'Да: WB1 → WB2 → WB3 предметом в руках (как в Rust)'},
+   {id:'bench_radius',  t:'Радиус верстака', o:['4 м (как сейчас)','8 м','По всей базе (шкаф засчитывает)'], rec:'4 м (как сейчас)'},
+   {id:'bench_speed',   t:'Скорость крафта по тирам', o:['×1.0 / ×1.5 / ×2.0 (как сейчас)','Всем одинаково','×1 / ×2 / ×3 (жёстче)'], rec:'×1.0 / ×1.5 / ×2.0 (как сейчас)'},
+   {id:'bench_public',  t:'Чужой верстак', o:['Пользоваться можно всем (как в Rust)','Только со шкафом (авторизация)'], rec:'Пользоваться можно всем (как в Rust)'},
+   {id:'hammer_repair', t:'Ремонт киянкой', o:['Четверть цены апгрейда, +40% прочности (как сейчас)','Дороже (полцены)','Без ремонта — только перестройка'], rec:'Четверть цены апгрейда, +40% прочности (как сейчас)'},
+   {id:'hammer_demolish',t:'Снос с возвратом', o:['10 минут, потом нельзя (как в Rust, как сейчас)','5 минут','Всегда можно сносить с возвратом'], rec:'10 минут, потом нельзя (как в Rust, как сейчас)'},
+   {id:'soft_side',     t:'Мягкая сторона', o:['Есть: где апгрейдили — там ×2.5 по ближнему бою (как сейчас)','Без мягкой стороны'], rec:'Есть: где апгрейдили — там ×2.5 по ближнему бою (как сейчас)'},
+   {id:'pieces12',      t:'Набор элементов', o:['12 (фундаменты, стены, окна, крыша, пандус, столб)','Хватит 6 базовых'], rec:'12 (фундаменты, стены, окна, крыша, пандус, столб)'},
+   {id:'lvl_items',     t:'Свои предметы уровней', o:['Да: светогриб/скотч, маска/хлорка, перчатки/предохранитель','Хватит того, что есть'], rec:'Да: светогриб/скотч, маска/хлорка, перчатки/предохранитель'},
+   {id:'lvl_palette',   t:'Своя атмосфера уровня', o:['Да: жёлтая пыль / бирюзовый пар / холодная гарь','Одна на всё'], rec:'Да: жёлтая пыль / бирюзовый пар / холодная гарь'},
+   {id:'exe_path',      t:'Как получаешь exe', o:['Батником BUILD_WINDOWS.bat (batchmode)','В Unity: меню 9/10 руками','Оба варианта'], rec:'Оба варианта'},
+   {id:'next_step',     t:'Что делать дальше', o:['Звук и анимации монстров','Технологическое дерево (research)','Больше моделей (мебель/декор)','Сеть и тест на 2-4 игрока'], rec:'Звук и анимации монстров'},
+   {id:'mirror_on',     t:'Включать Mirror сейчас', o:['Да, подготовить сетевой тест','Пока офлайн'], rec:'Пока офлайн'}
+ ]
+ }
+];
+
+/* ---------------------------------------------------------------- служебное */
+const Store=(()=>{let mem={},ok=true;try{localStorage.setItem('__t','1');localStorage.removeItem('__t');}catch(e){ok=false;}
+ return{get(k,d){try{const v=ok?localStorage.getItem(k):mem[k];return v==null?d:JSON.parse(v);}catch(e){return d;}},
+        set(k,v){try{const s=JSON.stringify(v);if(ok)localStorage.setItem(k,s);else mem[k]=s;}catch(e){mem[k]=JSON.stringify(v);}}}})();
+
+const ALL=[]; GROUPS.forEach(g=>g.qs.forEach(q=>{q.g=g.id;ALL.push(q);}));
+let answers=Store.get('subsistence_answers',{});
+let focusId=null;
+
+const $=id=>document.getElementById(id);
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function pad(n){return String(n).padStart(2,'0');}
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast._t);toast._t=setTimeout(()=>t.classList.remove('show'),2400);}
+function isAnswered(q){return !!(answers[q.id]&&String(answers[q.id]).trim());}
+function answeredCount(){return ALL.filter(isAnswered).length;}
+function grpStats(g){const a=g.qs.filter(isAnswered).length;return a+'/'+g.qs.length;}
+function tick(){const d=new Date();$('clock').textContent=`${pad(d.getDate())}.${pad(d.getMonth()+1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())} · отвечено: ${answeredCount()} / ${ALL.length}`;}
+
+/* ------------------------------------------------------------------ отрисовка */
+function drawNav(){
+  $('nav').innerHTML =
+    GROUPS.map(g=>`<div class="g${g.qs.every(isAnswered)?' done':''}" data-g="${g.id}"><b>[${g.id}]</b> ${esc(g.title.slice(3))} <i>${grpStats(g)}</i></div>`).join('')
+    + `<div class="hint">Порядок не важен — можно отвечать только на то, что интересно.<br><br>
+       Карточки с ★ — рекомендованный вариант.<br><br>
+       Кнопка «ЗАПОЛНИТЬ РЕКОМЕНДАЦИЯМИ» проставит все ★, потом правь что хочешь.<br><br>
+       <span style="color:#ffd23f">Есть короткий опросник на 19 вопросов — только то, что допилит игру:</span>
+       файл <b>questions2.html</b> (рядом с этим).</div>`;
+  $('nav').querySelectorAll('.g').forEach(el=>el.onclick=()=>{
+    const g=$('G_'+el.dataset.g); if(g) g.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+}
+
+function drawMain(){
+  let n=0;
+  $('main').innerHTML = GROUPS.map(g=>{
+    const head=`<h2 id="G_${g.id}">${esc(g.title)} <small>— ${esc(g.sub)} · ${grpStats(g)}</small></h2>`;
+    return head + g.qs.map(q=>{
+      n++;
+      const chosen=answers[q.id]||'';
+      const custom=answers[q.id+'_custom']||'';
+      const chips=q.o.map((o,i)=>{
+        const k=i+1;
+        return `<div class="chip${chosen===o?' sel':''}${o===q.rec?' rec':''}" data-q="${q.id}" data-v="${esc(o)}">
+                  <span class="k">${k}</span> ${esc(o)}</div>`;
+      }).join('');
+      return `<div class="q${focusId===q.id?' focus':''}" data-q="${q.id}" id="Q_${q.id}">
+        <div class="hdr">
+          <div class="num">${pad(n)}.</div>
+          <div class="txt">${esc(q.t)}</div>
+          <button class="clr" title="очистить ответ" onclick="clearOne('${q.id}')">×</button>
+        </div>
+        <div class="chips">${chips}</div>
+        <div class="row2">
+          <input type="text" placeholder="свой вариант / уточнение… (необязательно)" value="${esc(custom)}" data-custom="${q.id}">
+          <span class="st${isAnswered(q)?' ok':''}" id="st_${q.id}">${isAnswered(q)?'✓ ответ есть':'— нет ответа'}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }).join('');
+
+  // клики по вариантам
+  $('main').querySelectorAll('.chip').forEach(el=>el.onclick=e=>{
+    e.stopPropagation();
+    setAnswer(el.dataset.q, el.dataset.v);
+  });
+  // поля «свой вариант»
+  $('main').querySelectorAll('input[data-custom]').forEach(el=>{
+    el.oninput=()=>{ answers[el.dataset.custom+'_custom']=el.value; Store.set('subsistence_answers',answers); refresh(); };
+    el.onfocus=()=>focusQ(el.dataset.custom);
+  });
+  // фокус вопроса (чтобы работали цифры)
+  $('main').querySelectorAll('.q').forEach(el=>el.onclick=()=>focusQ(el.dataset.q));
+}
+
+function focusQ(id){
+  focusId=id;
+  $('main').querySelectorAll('.q').forEach(el=>el.classList.toggle('focus',el.dataset.q===id));
+}
+
+function setAnswer(id,v){
+  answers[id]=v; Store.set('subsistence_answers',answers); refresh();
+  const q=ALL.find(q=>q.id===id);
+  if(q) toast(`${q.t} → ${v}`);
+}
+
+function clearOne(id){
+  delete answers[id]; Store.set('subsistence_answers',answers); refresh(); toast('ответ очищен');
+}
+
+function refresh(){
+  const done=answeredCount(), pct=Math.round(done/ALL.length*100);
+  $('cnt').textContent=`${done} / ${ALL.length}`;
+  $('cnt2').textContent=`${done} / ${ALL.length} · ${pct} %`;
+  $('bari').style.width=pct+'%';
+  // обновляем выделение и статусы без полной перерисовки (сохраняем прокрутку и фокус)
+  ALL.forEach(q=>{
+    const chosen=answers[q.id]||'';
+    $('main').querySelectorAll(`.chip[data-q="${q.id}"]`).forEach(c=>c.classList.toggle('sel',c.dataset.v===chosen));
+    const st=$('st_'+q.id);
+    if(st){ const a=isAnswered(q); st.textContent=a?'✓ ответ есть':'— нет ответа'; st.className='st'+(a?' ok':''); }
+  });
+  $('nav').querySelectorAll('.g').forEach(el=>{
+    const g=GROUPS.find(g=>g.id===el.dataset.g);
+    el.querySelector('i').textContent=grpStats(g);
+    el.classList.toggle('done',g.qs.every(isAnswered));
+  });
+  $('out').textContent=buildJson();
+  tick();
+}
+
+/* -------------------------------------------------------------------- JSON */
+function buildJson(){
+  const payload={
+    project:'SUBSISTENCE',
+    form:'site/questions.html',
+    version:1,
+    saved_at:new Date().toISOString(),
+    answered:answeredCount()+'/'+ALL.length,
+    answers:{},
+    unanswered:[]
+  };
+  GROUPS.forEach(g=>g.qs.forEach(q=>{
+    const key=pad(ALL.indexOf(q)+1)+'_'+q.id;
+    if(isAnswered(q)) payload.answers[key]=answers[q.id];
+    else payload.unanswered.push(pad(ALL.indexOf(q)+1)+'_'+q.id);
+    if(answers[q.id+'_custom']) payload.answers[key+'_custom']=answers[q.id+'_custom'];
+  }));
+  return JSON.stringify(payload,null,2);
+}
+
+function copyJson(){
+  const text=buildJson();
+  const ok=()=>toast(`JSON скопирован (${answeredCount()}/${ALL.length}) — вставь его в чат`);
+  try{
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(text).then(ok,fallback); return; }
+  }catch(e){}
+  fallback();
+  function fallback(){
+    const pre=$('out');
+    try{
+      const r=document.createRange(); r.selectNodeContents(pre);
+      const s=window.getSelection(); s.removeAllRanges(); s.addRange(r);
+      document.execCommand('copy'); ok();
+    }catch(e){ toast('Автокопирование недоступно — выдели JSON внизу и скопируй вручную'); }
+  }
+}
+
+function downloadJson(){
+  try{
+    const blob=new Blob([buildJson()],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob); a.download='subsistence_answers.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    toast('файл subsistence_answers.json сохранён (обычно в «Загрузки»)');
+  }catch(e){ toast('Скачивание недоступно — используй «СКОПИРОВАТЬ JSON»'); }
+}
+
+function loadJson(file){
+  const reader=new FileReader();
+  reader.onload=()=>{
+    try{
+      const data=JSON.parse(reader.result);
+      const src=data.answers||data;
+      let n=0;
+      Object.keys(src).forEach(k=>{
+        const id=k.replace(/^\d+_/,'');
+        const base=id.replace(/_custom$/,'');
+        if(ALL.some(q=>q.id===base)){ answers[id]=src[k]; n++; }
+      });
+      Store.set('subsistence_answers',answers); refresh(); toast('загружено ответов: '+n);
+    }catch(e){ toast('не удалось прочитать JSON: '+e.message); }
+  };
+  reader.readAsText(file);
+}
+
+function fillRecommended(){
+  let n=0;
+  ALL.forEach(q=>{ if(!isAnswered(q)){ answers[q.id]=q.rec; n++; } });
+  Store.set('subsistence_answers',answers); drawMain(); refresh();
+  toast(n? `проставлено рекомендованных вариантов: ${n}` : 'все вопросы уже отвечены');
+}
+
+function jumpUnanswered(){
+  const q=ALL.find(q=>!isAnswered(q));
+  if(!q){ toast('все вопросы отвечены — жми «СКОПИРОВАТЬ JSON»'); return; }
+  const el=$('Q_'+q.id);
+  el.scrollIntoView({behavior:'smooth',block:'center'});
+  focusQ(q.id);
+  toast('без ответа: '+q.t);
+}
+
+function resetAll(){
+  let go=true; try{ go=confirm('Сбросить все ответы?'); }catch(e){ go=true; }
+  if(!go) return;
+  answers={}; Store.set('subsistence_answers',answers); drawMain(); refresh(); toast('все ответы сброшены');
+}
+
+/* ----------------------------------------------------------------- клавиатура */
+document.addEventListener('keydown',e=>{
+  const tag=(e.target&&e.target.tagName)||'';
+  if(tag==='INPUT'&&focusId===null) return;
+  if(tag==='INPUT'&&e.key.length===1) return;           // в поле «свой вариант» печатаем как обычно
+  if(!focusId) return;
+  const q=ALL.find(q=>q.id===focusId); if(!q) return;
+  if(e.key==='0'){ clearOne(focusId); e.preventDefault(); return; }
+  const n=parseInt(e.key,10);
+  if(n>=1&&n<=q.o.length){ setAnswer(focusId,q.o[n-1]); e.preventDefault(); }
+  if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+    const i=ALL.indexOf(q), j=e.key==='ArrowDown'?Math.min(ALL.length-1,i+1):Math.max(0,i-1);
+    const el=$('Q_'+ALL[j].id); el.scrollIntoView({block:'nearest'}); focusQ(ALL[j].id); e.preventDefault();
+  }
+});
+
+/* -------------------------------------------------------------------- запуск */
+$('file').addEventListener('change',e=>{ if(e.target.files&&e.target.files[0]) loadJson(e.target.files[0]); e.target.value=''; });
+drawNav(); drawMain(); refresh();
+setInterval(tick,20000);
+</script>
+</body>
+</html>
